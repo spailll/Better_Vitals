@@ -381,6 +381,14 @@ var BetterVitalsMenuButton = GObject.registerClass({
             hotLabel.set_text(value);
             hotLabel.style = style;
 
+            // Keep icon color in sync with value color for threshold highlighting.
+            if (!this._settings.get_boolean('hide-icons')) {
+                let hotItem = this._hotItems[key];
+                let icon = hotItem?.get_first_child();
+                if (icon instanceof St.Icon)
+                    icon.style = style || null;
+            }
+
             // support for fixed widths #55
             if (this._settings.get_boolean('fixed-widths')) {
                 // grab text box width and see if new text is wider than old text

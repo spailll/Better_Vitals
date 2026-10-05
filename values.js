@@ -29,6 +29,11 @@ import GObject from 'gi://GObject';
 import {sensorCatalog, colorsKeyForSensor} from './helpers/catalog.js';
 import {getUsageColor} from './helpers/colors.js';
 
+const DEFAULT_WARNING_THRESHOLD = 75;
+const DEFAULT_CRITICAL_THRESHOLD = 90;
+const DEFAULT_WARNING_STYLE = 'color: rgb(245, 194, 17);';
+const DEFAULT_CRITICAL_STYLE = 'color: rgb(224, 27, 36);';
+
 const cbFun = (d, c) => {
     let bb = d[1] % c[0],
         aa = (d[1] - bb) / c[0];
@@ -243,7 +248,21 @@ export const Values = GObject.registerClass({
         if (!colorsKey || numeric === null || !Number.isFinite(numeric))
             return '';
 
-        return getUsageColor(numeric, this._settings.get_strv(colorsKey), sensorKey);
+        let colors = this._settings.get_strv(colorsKey);
+        let style = getUsageColor(numeric, colors, sensorKey);
+        if (style || colors.length > 0)
+            return style;
+
+        // Sensible defaults for usage metrics when no custom thresholds exist.
+        if (format == 'percent' &&
+            (colorsKey == 'processor-colors' || colorsKey == 'memory-colors' || colorsKey == 'gpu-colors')) {
+            if (numeric >= DEFAULT_CRITICAL_THRESHOLD)
+                return DEFAULT_CRITICAL_STYLE;
+            if (numeric >= DEFAULT_WARNING_THRESHOLD)
+                return DEFAULT_WARNING_STYLE;
+        }
+
+        return '';
     }
 
     returnIfDifferent(dwell, label, value, type, format, key) {
