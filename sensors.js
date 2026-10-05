@@ -39,7 +39,7 @@ try {
 };
 
 export const Sensors = GObject.registerClass({
-    GTypeName: 'Sensors',
+    GTypeName: 'BetterVitalsSensors',
 }, class Sensors extends GObject.Object {
     _init(settings, sensorIcons, gettext) {
         this._settings = settings;

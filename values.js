@@ -47,7 +47,7 @@ const binary = [ 'B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB' ];
 const hertz = [ 'Hz', 'KHz', 'MHz', 'GHz', 'THz', 'PHz', 'EHz', 'ZHz' ];
 
 export const Values = GObject.registerClass({
-       GTypeName: 'Values',
+    GTypeName: 'BetterVitalsValues',
 }, class Values extends GObject.Object {
 
     _init(settings, sensorIcons) {
@@ -431,8 +431,9 @@ export const Values = GObject.registerClass({
                     });
                 }
             }
-        } else if (type.startsWith('gpu#') && label == 'Utilization') {
+        } else if (type.startsWith('gpu#') && (label == 'Utilization' || label == 'Usage')) {
             // Keep a per-GPU utilization cache and expose a synthetic average key.
+            // DRM GPUs report "Usage" while nvidia-smi reports "Utilization".
             this._gpuUtilizationByType[type] = parseFloat(value);
 
             let gpuUtilizations = Object.values(this._gpuUtilizationByType)
