@@ -51,6 +51,7 @@ export const Values = GObject.registerClass({
 
         this._networkSpeedOffset = {};
         this._networkSpeeds = {};
+        this._gpuUtilizationByType = {};
 
         this._history = {};
         this.resetHistory();
@@ -411,6 +412,28 @@ export const Values = GObject.registerClass({
                     });
                 }
             }
+        } else if (type.startsWith('gpu#') && label == 'Utilization') {
+            // Keep a per-GPU utilization cache and expose a synthetic average key.
+            this._gpuUtilizationByType[type] = parseFloat(value);
+
+            let gpuUtilizations = Object.values(this._gpuUtilizationByType)
+                .filter(v => Number.isFinite(v));
+
+            if (gpuUtilizations.length > 0) {
+                let sum = gpuUtilizations.reduce((partialSum, v) => partialSum + v, 0);
+                let avg = sum / gpuUtilizations.length;
+                let avgKey = '__gpu_avg__';
+                let avgFormatted = this._legible(avg, 'percent', type, avgKey);
+
+                output.push({
+                    label: 'Average Usage',
+                    value: avgFormatted.text,
+                    style: avgFormatted.style,
+                    // Put this row under the GPU #1 dropdown group.
+                    type: 'gpu#1',
+                    key: avgKey,
+                });
+            }
         }
 
         return output;
@@ -431,5 +454,7 @@ export const Values = GObject.registerClass({
             this._history['gpu#' + i] = {};
             this._history['gpu#' + i + '-group'] = {};
         }
+
+        this._gpuUtilizationByType = {};
     }
 });
