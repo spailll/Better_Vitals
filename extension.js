@@ -75,6 +75,7 @@ var BetterVitalsMenuButton = GObject.registerClass({
             'changed::update-time', this._initializeTimer.bind(this),
             'changed::position-in-panel', this._positionInPanelChanged.bind(this),
             'changed::menu-centered', this._positionInPanelChanged.bind(this),
+            'changed::hot-sensors', this._redrawHotSensors.bind(this),
             this);
 
         let settings = [ 'use-higher-precision', 'alphabetize', 'hide-zeros',

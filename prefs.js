@@ -48,6 +48,8 @@ class Settings {
         this._discoveredSensorsByPage = {};
         this._sensors = null;
         this._sensorDiscoveryTimeoutId = 0;
+        this._hotbarPage = null;
+        this._hotbarPageStack = null;
         this._bind_sensor_page_gates();
         this._bind_settings();
         this._start_sensor_discovery();
@@ -375,6 +377,340 @@ class Settings {
 
     }
 
+    _hotbar_recommended_keys() {
+        return [
+            '_processor_usage_',
+            '__temperature_avg__',
+            '_memory_usage_',
+            '__gpu_avg__',
+            '__network-rx_max__',
+            '__network-tx_max__',
+        ];
+    }
+
+    _selected_hot_sensors() {
+        return this._settings.get_strv('hot-sensors')
+            .filter(key => key && key !== '_default_icon_');
+    }
+
+    _set_hot_sensors_order(keys) {
+        let ordered = [...new Set((keys || []).filter(key => key && key !== '_default_icon_'))];
+        if (ordered.length === 0)
+            ordered = ['_default_icon_'];
+        this._settings.set_strv('hot-sensors', ordered);
+    }
+
+    _move_hot_sensor(key, delta) {
+        let hotSensors = this._selected_hot_sensors();
+        let from = hotSensors.indexOf(key);
+        if (from < 0)
+            return;
+
+        let to = from + delta;
+        if (to < 0 || to >= hotSensors.length)
+            return;
+
+        [hotSensors[from], hotSensors[to]] = [hotSensors[to], hotSensors[from]];
+        this._set_hot_sensors_order(hotSensors);
+    }
+
+    _titleize_sensor_words(text) {
+        let acronyms = {
+            'cpu': 'CPU',
+            'gpu': 'GPU',
+            'ip': 'IP',
+            'rx': 'RX',
+            'tx': 'TX',
+        };
+        let aliases = {
+            'avg': _('Average'),
+            'max': _('Max'),
+            'min': _('Min'),
+        };
+
+        return text
+            .replaceAll('-', ' ')
+            .split(' ')
+            .filter(Boolean)
+            .map(word => {
+                let lower = word.toLowerCase();
+                if (acronyms[lower])
+                    return acronyms[lower];
+                if (aliases[lower])
+                    return aliases[lower];
+                return word.charAt(0).toUpperCase() + word.slice(1);
+            })
+            .join(' ');
+    }
+
+    _hotbar_type_title(typePart) {
+        let lower = String(typePart || '').toLowerCase();
+        if (!lower)
+            return '';
+        if (lower === 'processor')
+            return _('CPU');
+        if (lower === 'memory')
+            return _('Memory');
+        if (lower === 'temperature')
+            return _('Temperature');
+        if (lower === 'storage')
+            return _('Storage');
+        if (lower === 'battery')
+            return _('Battery');
+        if (lower === 'system')
+            return _('System');
+        if (lower === 'fan')
+            return _('Fan');
+        if (lower === 'voltage')
+            return _('Voltage');
+        if (lower === 'network')
+            return _('Network');
+        if (lower === 'network-rx')
+            return _('Network RX');
+        if (lower === 'network-tx')
+            return _('Network TX');
+        if (lower.startsWith('gpu#'))
+            return _('GPU %s').format(typePart.split('#')[1]);
+        if (lower.startsWith('gpu'))
+            return _('GPU');
+        return this._titleize_sensor_words(typePart);
+    }
+
+    _hotbar_label_from_key(key) {
+        let trimmed = String(key || '').replace(/^_+|_+$/g, '');
+        if (!trimmed)
+            return key || '';
+
+        let parts = trimmed.split('_').filter(Boolean);
+        if (parts.length === 0)
+            return key || '';
+
+        let typePart = parts.shift();
+        if (!typePart)
+            typePart = parts.shift() || '';
+
+        let labelPart = this._titleize_sensor_words(parts.join(' '));
+        let typeTitle = this._hotbar_type_title(typePart);
+
+        if (!labelPart)
+            return typeTitle || typePart;
+
+        if (!typeTitle)
+            return labelPart;
+
+        if (labelPart.toLowerCase() === typeTitle.toLowerCase())
+            return typeTitle;
+
+        return `${typeTitle} ${labelPart}`;
+    }
+
+    _set_hot_sensor(key, enabled) {
+        let hotSensors = this._settings.get_strv('hot-sensors')
+            .filter(item => item && item !== '_default_icon_');
+
+        if (enabled && !hotSensors.includes(key))
+            hotSensors.push(key);
+        else if (!enabled)
+            hotSensors = hotSensors.filter(item => item !== key);
+
+        hotSensors = [...new Set(hotSensors)];
+        if (hotSensors.length === 0)
+            hotSensors = ['_default_icon_'];
+
+        this._settings.set_strv('hot-sensors', hotSensors);
+    }
+
+    _hotbar_candidates() {
+        let candidates = new Set(this._hotbar_recommended_keys());
+        for (let pageName of Object.keys(this._discoveredSensorsByPage)) {
+            for (let key of this._discoveredSensorsByPage[pageName])
+                candidates.add(key);
+        }
+        for (let key of this._settings.get_strv('hot-sensors'))
+            candidates.add(key);
+
+        return [...candidates]
+            .filter(key => key && key !== '_default_icon_')
+            .sort((a, b) => a.localeCompare(b));
+    }
+
+    _refresh_hotbar_page(stack = this._hotbarPageStack) {
+        if (!this._hotbarPage || !stack)
+            return;
+
+        let visibleName = stack.get_visible_child_name();
+        stack.remove(this._hotbarPage);
+
+        let page = this._build_hotbar_page();
+        this._hotbarPage = page;
+        page.set_title('');
+        stack.add_titled_with_icon(page, 'hotbar', _('Hot Bar'), 'view-list-symbolic');
+        if (visibleName === 'hotbar')
+            stack.set_visible_child_name('hotbar');
+    }
+
+    _build_hotbar_page() {
+        let page = new Adw.PreferencesPage({
+            title: _('Hot Bar'),
+            icon_name: 'view-list-symbolic',
+        });
+
+        let selectedOrdered = this._selected_hot_sensors();
+        let selected = new Set(selectedOrdered);
+
+        if (selectedOrdered.length > 0) {
+            let orderGroup = new Adw.PreferencesGroup({
+                title: _('Selected order'),
+                description: _('Use arrows to reorder what appears in the panel.'),
+                margin_start: 10,
+                margin_end: 10,
+            });
+
+            for (let i = 0; i < selectedOrdered.length; i++) {
+                let key = selectedOrdered[i];
+                let row = new Adw.ActionRow({
+                    title: this._hotbar_label_from_key(key) || key,
+                    activatable: false,
+                });
+
+                let upButton = this._flatButton({
+                    icon_name: 'go-up-symbolic',
+                    tooltip_text: _('Move up'),
+                });
+                upButton.set_sensitive(i > 0);
+                upButton.connect('clicked', () => {
+                    this._move_hot_sensor(key, -1);
+                    this._refresh_hotbar_page();
+                });
+
+                let downButton = this._flatButton({
+                    icon_name: 'go-down-symbolic',
+                    tooltip_text: _('Move down'),
+                });
+                downButton.set_sensitive(i < selectedOrdered.length - 1);
+                downButton.connect('clicked', () => {
+                    this._move_hot_sensor(key, 1);
+                    this._refresh_hotbar_page();
+                });
+
+                let removeButton = this._flatButton({
+                    icon_name: 'edit-delete-symbolic',
+                    tooltip_text: _('Remove from panel'),
+                });
+                removeButton.connect('clicked', () => {
+                    this._set_hot_sensor(key, false);
+                    this._refresh_hotbar_page();
+                });
+
+                row.add_suffix(upButton);
+                row.add_suffix(downButton);
+                row.add_suffix(removeButton);
+                orderGroup.add(row);
+            }
+            page.add(orderGroup);
+        }
+
+        let recommendedGroup = new Adw.PreferencesGroup({
+            title: _('Recommended'),
+            margin_start: 10,
+            margin_end: 10,
+        });
+
+        for (let key of this._hotbar_recommended_keys()) {
+            let row = new Adw.ActionRow({
+                title: this._hotbar_label_from_key(key) || labelFromSensorKey(key) || key,
+                activatable: false,
+            });
+            let toggle = new Gtk.Switch({
+                active: selected.has(key),
+                valign: Gtk.Align.CENTER,
+            });
+            toggle.connect('notify::active', () => {
+                this._set_hot_sensor(key, toggle.get_active());
+                this._refresh_hotbar_page();
+            });
+            row.add_suffix(toggle);
+            recommendedGroup.add(row);
+        }
+        page.add(recommendedGroup);
+
+        let extraSelected = [...selected]
+            .filter(key => !this._hotbar_recommended_keys().includes(key))
+            .sort((a, b) => a.localeCompare(b));
+
+        if (extraSelected.length > 0) {
+            let extraGroup = new Adw.PreferencesGroup({
+                title: _('Selected extras'),
+                margin_start: 10,
+                margin_end: 10,
+            });
+
+            for (let key of extraSelected) {
+                let row = new Adw.ActionRow({
+                    title: this._hotbar_label_from_key(key) || labelFromSensorKey(key) || key,
+                    activatable: false,
+                });
+                let toggle = new Gtk.Switch({
+                    active: true,
+                    valign: Gtk.Align.CENTER,
+                });
+                toggle.connect('notify::active', () => {
+                    this._set_hot_sensor(key, toggle.get_active());
+                    this._refresh_hotbar_page();
+                });
+                row.add_suffix(toggle);
+                extraGroup.add(row);
+            }
+            page.add(extraGroup);
+        }
+
+        let addGroup = new Adw.PreferencesGroup({
+            title: _('Add more'),
+            margin_start: 10,
+            margin_end: 10,
+        });
+
+        let candidates = this._hotbar_candidates().filter(
+            key => !selected.has(key));
+
+        if (candidates.length > 0) {
+            let available = new Gtk.StringList();
+            let candidateKeys = [];
+            for (let key of candidates) {
+                candidateKeys.push(key);
+                available.append(this._hotbar_label_from_key(key) || labelFromSensorKey(key) || key);
+            }
+
+            let dropdown = new Gtk.DropDown({
+                model: available,
+                valign: Gtk.Align.CENTER,
+                hexpand: true,
+            });
+
+            let addButton = this._flatButton({
+                label: _('Add'),
+            });
+            addButton.connect('clicked', () => {
+                let index = dropdown.get_selected();
+                if (index >= 0 && index < candidateKeys.length) {
+                    this._set_hot_sensor(candidateKeys[index], true);
+                    this._refresh_hotbar_page();
+                }
+            });
+
+            let row = new Adw.ActionRow({
+                title: _('More sensors'),
+                activatable_widget: addButton,
+            });
+            row.add_suffix(dropdown);
+            row.add_suffix(addButton);
+            addGroup.add(row);
+            page.add(addGroup);
+        }
+
+        return page;
+    }
+
     // Runtime matching is `value >= threshold` (see values.js), so each band is
     // [low, high). Integer breakpoints use high-1 in the label (0–39, 40–59, …).
     // Float breakpoints keep an explicit half-open label (0 – <0.5).
@@ -533,11 +869,12 @@ class Settings {
         }
         for (let key of live) {
             keys.push(key);
-            labels.push(labelFromSensorKey(key));
+            labels.push(this._hotbar_label_from_key(key) || labelFromSensorKey(key));
         }
         for (let key of orphans) {
             keys.push(key);
-            labels.push(_('%s (unavailable)').format(labelFromSensorKey(key)));
+            labels.push(_('%s (unavailable)').format(
+                this._hotbar_label_from_key(key) || labelFromSensorKey(key)));
         }
         return {keys, labels};
     }
@@ -591,7 +928,7 @@ class Settings {
         if (!sensorKey)
             return _('All sensors colors');
 
-        let label = labelFromSensorKey(sensorKey);
+        let label = this._hotbar_label_from_key(sensorKey) || labelFromSensorKey(sensorKey);
         if (this._sensor_key_is_live(pageName, sensorKey))
             return _('%s colors').format(label);
         return _('%s colors (unavailable)').format(label);
@@ -865,11 +1202,14 @@ export default class BetterVitalsPrefs extends ExtensionPreferences {
         // Replace PreferencesWindow's bottom-tab navigation with the sidebar shell.
         window.get_content().set_child(root);
 
-        let pages = [{ name: 'general' }];
+        let hotbarPage = settings._build_hotbar_page();
+        settings._hotbarPage = hotbarPage;
+        settings._hotbarPageStack = stack;
+        let pages = [{ name: 'general' }, { name: 'hotbar', page: hotbarPage }];
         for (let name of Object.keys(sensorCatalog))
             pages.push({ name });
         for (let info of pages) {
-            let page = settings.builder.get_object(info.name + '-page');
+            let page = info.page || settings.builder.get_object(info.name + '-page');
             let title = page.get_title();
             let iconName = page.get_icon_name();
             // Header bar already shows the section title; hide the page banner.
