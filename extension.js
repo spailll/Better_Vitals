@@ -17,11 +17,11 @@ import * as Values from './values.js';
 import * as MenuItem from './menuItem.js';
 import * as SensorCatalog from './helpers/catalog.js';
 
-let vitalsMenu;
+let betterVitalsMenu;
 
-var VitalsMenuButton = GObject.registerClass({
-    GTypeName: 'VitalsMenuButton',
-}, class VitalsMenuButton extends PanelMenu.Button {
+var BetterVitalsMenuButton = GObject.registerClass({
+    GTypeName: 'BetterVitalsMenuButton',
+}, class BetterVitalsMenuButton extends PanelMenu.Button {
     _init(extensionObject) {
         super._init(Clutter.ActorAlign.FILL);
 
@@ -52,7 +52,7 @@ var VitalsMenuButton = GObject.registerClass({
             y_align: Clutter.ActorAlign.CENTER,
             reactive: true,
             x_expand: true,
-            style_class: 'vitals-panel-menu'
+            style_class: 'better-vitals-panel-menu'
         });
 
         this._drawMenu();
@@ -118,11 +118,11 @@ var VitalsMenuButton = GObject.registerClass({
 
         let item = new PopupMenu.PopupBaseMenuItem({
             reactive: false,
-            style_class: 'vitals-menu-button-container'
+            style_class: 'better-vitals-menu-button-container'
         });
 
         let customButtonBox = new St.BoxLayout({
-            style_class: 'vitals-button-box',
+            style_class: 'better-vitals-button-box',
             clip_to_allocation: true,
             x_align: Clutter.ActorAlign.CENTER,
             y_align: Clutter.ActorAlign.CENTER,
@@ -200,7 +200,7 @@ var VitalsMenuButton = GObject.registerClass({
 
     _createRoundButton(iconName) {
         let button = new St.Button({
-            style_class: 'message-list-clear-button button vitals-button-action'
+            style_class: 'message-list-clear-button button better-vitals-button-action'
         });
 
         button.child = new St.Icon({
@@ -256,7 +256,7 @@ var VitalsMenuButton = GObject.registerClass({
 
     _createHotItem(key, value, gicon, style) {
         let item = new St.BoxLayout({
-            style_class: 'vitals-panel-item',
+            style_class: 'better-vitals-panel-item',
         });
         this._hotItems[key] = item;
         this._menuLayout.add_child(item);
@@ -271,7 +271,7 @@ var VitalsMenuButton = GObject.registerClass({
         if (key == '_default_icon_') return;
 
         let label = new St.Label({
-            style_class: 'vitals-panel-label',
+            style_class: 'better-vitals-panel-label',
             text: (value)?value:'\u2026', // ...
             style: style || null,
             y_expand: true,
@@ -474,7 +474,7 @@ var VitalsMenuButton = GObject.registerClass({
         let type = split[0];
 
         let icon = new St.Icon({
-          style_class: 'system-status-icon vitals-panel-icon-' + type,
+                    style_class: 'system-status-icon better-vitals-panel-icon-' + type,
             reactive: true
         });
 
@@ -646,15 +646,15 @@ var VitalsMenuButton = GObject.registerClass({
     }
 });
 
-export default class VitalsExtension extends Extension {
+export default class BetterVitalsExtension extends Extension {
     enable() {
-        vitalsMenu = new VitalsMenuButton(this);
-        let position = vitalsMenu._positionInPanel();
-        Main.panel.addToStatusArea('vitalsMenu', vitalsMenu, position[1], position[0]);
+        betterVitalsMenu = new BetterVitalsMenuButton(this);
+        let position = betterVitalsMenu._positionInPanel();
+        Main.panel.addToStatusArea('betterVitalsMenu', betterVitalsMenu, position[1], position[0]);
     }
 
     disable() {
-        vitalsMenu.destroy();
-        vitalsMenu = null;
+        betterVitalsMenu.destroy();
+        betterVitalsMenu = null;
     }
 }

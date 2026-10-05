@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <schemalist gettext-domain="gnome-shell-extensions">
-  <schema id="org.gnome.shell.extensions.vitals" path="/org/gnome/shell/extensions/vitals/">
+  <schema id="org.gnome.shell.extensions.better_vitals" path="/org/gnome/shell/extensions/better_vitals/">
     <key name="hot-sensors" type="as">
-      <default>['_processor_usage_', '_temperature_avg_', '_memory_usage_', '_gpu_avg_', '__network-rx_max__']</default>
+      <default>['_processor_usage_', '__temperature_avg__', '_memory_usage_', '__gpu_avg__', '__network-rx_max__']</default>
       <summary>Sensors to show in panel</summary>
       <description>List of sensors to be shown in the panel</description>
     </key>
@@ -128,7 +128,7 @@
     <key type="i" name="battery-slot">
       <default>0</default>
       <summary>Battery slot to monitor</summary>
-      <description>Which numerical battery slot should vitals monitor</description>
+      <description>Which numerical battery slot should Better_Vitals monitor</description>
     </key>
     <key type="b" name="fixed-widths">
       <default>true</default>

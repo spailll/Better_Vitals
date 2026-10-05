@@ -132,10 +132,10 @@ class Settings {
         let iconTheme = Gtk.IconTheme.get_for_display(Gdk.Display.get_default());
         let styles = ['original', 'gnome'];
         let dir = styles[this._settings.get_int('icon-style')] || 'original';
-        let vitalsPath = `${this._extensionObject.path}/icons/${dir}`;
+        let betterVitalsPath = `${this._extensionObject.path}/icons/${dir}`;
         let iconsRoot = `${this._extensionObject.path}/icons/`;
         let others = (iconTheme.get_search_path() || []).filter(p => !p.startsWith(iconsRoot));
-        iconTheme.set_search_path([vitalsPath].concat(others));
+        iconTheme.set_search_path([betterVitalsPath].concat(others));
         return iconTheme;
     }
 
@@ -843,15 +843,15 @@ class Settings {
     }
 }
 
-export default class VitalsPrefs extends ExtensionPreferences {
+export default class BetterVitalsPrefs extends ExtensionPreferences {
     fillPreferencesWindow(window) {
         window._settings = this.getSettings();
 
         let settings = new Settings(this);
-        window._vitalsSettings = settings;
+        window._betterVitalsSettings = settings;
         window.connect('close-request', () => {
             settings.destroy();
-            window._vitalsSettings = null;
+            window._betterVitalsSettings = null;
         });
 
         window.set_search_enabled(false);

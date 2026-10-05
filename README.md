@@ -1,9 +1,9 @@
-Vitals
+Better_Vitals
 ====================================
 
-Vitals is a GNOME Shell extension for displaying your computer's temperature, voltage, fan speed, memory usage, processor load, system resources, network speed and storage stats in your GNOME Shell's top menu bar. This is a one stop shop to monitor all of your vital sensors. Vitals uses asynchronous polling to provide a smooth user experience.
+Better_Vitals is a GNOME Shell extension for displaying your computer's temperature, voltage, fan speed, memory usage, processor load, system resources, network speed and storage stats in your GNOME Shell's top menu bar. This is a one stop shop to monitor all of your vital sensors. Better_Vitals uses asynchronous polling to provide a smooth user experience.
 
-![How it works](https://raw.githubusercontent.com/corecoding/Vitals/main/howtouse.gif)
+![How it works](https://raw.githubusercontent.com/spailll/Better_Vitals/main/howtouse.gif)
 
 ## Installation
 
@@ -29,12 +29,11 @@ Vitals is a GNOME Shell extension for displaying your computer's temperature, vo
 
 #### Ubuntu/Debian
 
-#### &nbsp;&nbsp;&nbsp;&nbsp;Open the Extension Manager (installed above), search for Vitals and click Install.
+#### &nbsp;&nbsp;&nbsp;&nbsp;Open the Extension Manager (installed above), search for Better_Vitals and click Install.
 
 #### Fedora
 
-##### &nbsp;&nbsp;&nbsp;&nbsp;Visit [Gnome Extensions website](https://extensions.gnome.org/extension/1460/vitals/), search for Vitals and click switch (power on) icon.
-##### &nbsp;&nbsp;&nbsp;&nbsp; [<img src="https://raw.githubusercontent.com/andyholmes/gnome-shell-extensions-badge/master/get-it-on-ego.svg?sanitize=true" alt="Get it on GNOME Extensions" height="100" align="middle">][gextension]
+##### &nbsp;&nbsp;&nbsp;&nbsp;Visit [Better_Vitals on GitHub](https://github.com/spailll/Better_Vitals), clone it locally, and install it under your extension UUID path.
 
 #### Arch/Manjaro
 
@@ -52,30 +51,30 @@ Vitals is a GNOME Shell extension for displaying your computer's temperature, vo
 
 #### Ubuntu/Debian/Fedora
 
-##### &nbsp;&nbsp;&nbsp;&nbsp;At this point, Vitals should be running. If you reversed steps 1 and 2 above, you will need to restart your session by logging out and then back in.
+##### &nbsp;&nbsp;&nbsp;&nbsp;At this point, Better_Vitals should be running. If you reversed steps 1 and 2 above, you will need to restart your session by logging out and then back in.
 
 #### Arch/Manjaro
 
-##### &nbsp;&nbsp;&nbsp;&nbsp;Open the Extensions application and toggle on Vitals
+##### &nbsp;&nbsp;&nbsp;&nbsp;Open the Extensions application and toggle on Better_Vitals
 
 ## Beta testing
 
 ##### Advanced users requesting bug fixes or asking for new features may occasionally be asked to help QA.
 
-### 1) Remove existing copy of Vitals
+### 1) Remove existing copy of Better_Vitals
 
-##### &nbsp;&nbsp;&nbsp;&nbsp;Remove existing copy of vitals - expert users only!
+##### &nbsp;&nbsp;&nbsp;&nbsp;Remove existing copy of Better_Vitals - expert users only!
 
-    rm -rI ~/.local/share/gnome-shell/extensions/Vitals@CoreCoding.com
+    rm -rI ~/.local/share/gnome-shell/extensions/Better_Vitals@spail
 
 ### 2) Clone from GitHub
 
     mkdir -p ~/.local/share/gnome-shell/extensions
-    git clone https://github.com/corecoding/Vitals.git ~/.local/share/gnome-shell/extensions/Vitals@CoreCoding.com -b develop
+    git clone https://github.com/spailll/Better_Vitals.git ~/.local/share/gnome-shell/extensions/Better_Vitals@spail -b main
 
 ### 3) Compile Schemas
 
-    glib-compile-schemas --strict ~/.local/share/gnome-shell/extensions/Vitals\@CoreCoding.com/schemas/
+    glib-compile-schemas --strict ~/.local/share/gnome-shell/extensions/Better_Vitals@spail/schemas/
 
 ### 4) Activate develop version
 
@@ -85,10 +84,13 @@ Vitals is a GNOME Shell extension for displaying your computer's temperature, vo
 
 #### Arch/Manjaro
 
-##### &nbsp;&nbsp;&nbsp;&nbsp;Open the Extensions application and toggle on Vitals
+##### &nbsp;&nbsp;&nbsp;&nbsp;Open the Extensions application and toggle on Better_Vitals
 
 ## Credits
-Vitals was originally forked from [gnome-shell-extension-freon](https://github.com/UshakovVasilii/gnome-shell-extension-freon). I was having trouble finding an up to date, resource friendly and fully featured system monitoring tool. My biggest pet peeve was random system delays because of I/O blocking polls, and thus, the idea for Vitals was born! It has been refactored several times over, so most of the code is new or different.
+Better_Vitals was originally forked from [Vitals](https://github.com/corecoding/Vitals), which itself was originally forked from [gnome-shell-extension-freon](https://github.com/UshakovVasilii/gnome-shell-extension-freon).
+
+## Original Creator Credit
+Primary credit for the original Vitals extension design and implementation goes to Chris Monahan (Core Coding) and project contributors. Better_Vitals builds on that foundation.
 
 ## Icons
 
@@ -107,21 +109,21 @@ Vitals was originally forked from [gnome-shell-extension-freon](https://github.c
 * (temperature | cpu)-symbolic.svg - designed by [daudix](https://github.com/daudix).
 
 ## Disclaimer
-Sensor data is obtained from the system using hwmon and GTop. Core Coding and the Vitals authors are not responsible for improperly represented data. No warranty expressed or implied.
+Sensor data is obtained from the system using hwmon and GTop. Better_Vitals and upstream contributors are not responsible for improperly represented data. No warranty expressed or implied.
 
 ## Development Commands
 
 | Description | Command |
 | --- | --- |
-| Launch preferences | `gnome-shell-extension-prefs Vitals@CoreCoding.com` |
-| View logs | ``journalctl --since="`date '+%Y-%m-%d %H:%M'`" -f \| grep Vitals`` |
+| Launch preferences | `gnome-shell-extension-prefs Better_Vitals@spail` |
+| View logs | ``journalctl --since="`date '+%Y-%m-%d %H:%M'`" -f \| grep Better_Vitals`` |
 | Compile schemas | `glib-compile-schemas --strict schemas/` |
 | Compile translation file | `msgfmt vitals.po -o vitals.mo` |
 | Launch Wayland virtual window | `dbus-run-session -- gnome-shell --nested --wayland` |
-| Read hot-sensors value | `dconf read /org/gnome/shell/extensions/vitals/hot-sensors` |
-| Write hot-sensors value | `dconf write /org/gnome/shell/extensions/vitals/hot-sensors "['_memory_usage_', '_system_load_1m_']"`<br/>This value configures the list of sensors that show up in the panel. To specify a sensor name, click on the extension to show the drop-down menu, then take the category label and the label of the individual sensor, convert them to `snake_case`, and format them like this: `_category_sensor_`.|
+| Read hot-sensors value | `dconf read /org/gnome/shell/extensions/better_vitals/hot-sensors` |
+| Write hot-sensors value | `dconf write /org/gnome/shell/extensions/better_vitals/hot-sensors "['_memory_usage_', '_system_load_1m_']"`<br/>This value configures the list of sensors that show up in the panel. To specify a sensor name, click on the extension to show the drop-down menu, then take the category label and the label of the individual sensor, convert them to `snake_case`, and format them like this: `_category_sensor_`.| 
 
 ## Donations
 [Please consider donating if you find this extension useful.](https://corecoding.com/donate.php)
 
-[gextension]: https://extensions.gnome.org/extension/1460/vitals/
+[gextension]: https://github.com/spailll/Better_Vitals

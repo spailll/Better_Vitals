@@ -1,10 +1,10 @@
-# Vitals — agent notes
+# Better_Vitals — agent notes
 
-GNOME Shell extension (`Vitals@CoreCoding.com`) that polls hardware sensors asynchronously and shows them in the top bar. Runtime is GJS ES modules (Shell 45–50). Official getting-started and practices: [Creating an extension](https://gjs.guide/extensions/development/creating.html), [Anatomy](https://gjs.guide/extensions/overview/anatomy.html), [Imports](https://gjs.guide/extensions/overview/imports-and-modules.html), [Debugging](https://gjs.guide/extensions/development/debugging.html), [Best practices](https://gjs.guide/extensions/review-guidelines/best-practices.html).
+GNOME Shell extension (`Better_Vitals@spail`) that polls hardware sensors asynchronously and shows them in the top bar. Runtime is GJS ES modules (Shell 45–50). Official getting-started and practices: [Creating an extension](https://gjs.guide/extensions/development/creating.html), [Anatomy](https://gjs.guide/extensions/overview/anatomy.html), [Imports](https://gjs.guide/extensions/overview/imports-and-modules.html), [Debugging](https://gjs.guide/extensions/development/debugging.html), [Best practices](https://gjs.guide/extensions/review-guidelines/best-practices.html).
 
 ## Layout
 
-The install directory **must match** `metadata.json` `uuid`. User install: `~/.local/share/gnome-shell/extensions/Vitals@CoreCoding.com/`.
+The install directory **must match** `metadata.json` `uuid`. User install: `~/.local/share/gnome-shell/extensions/Better_Vitals@spail/`.
 
 Required: `metadata.json`, `extension.js`. This repo also uses `prefs.js`, `stylesheet.css`, `schemas/`, `locale/`, helpers, and icons.
 
@@ -46,7 +46,7 @@ Settings: schema id lives in metadata; entry points use `this.getSettings()` wit
 
 GJS caches loaded modules. **Code changes require a new gnome-shell process**, not just disable/enable.
 
-- Wayland: `dbus-run-session gnome-shell --devkit --wayland` (GNOME 49+; needs `mutter-devkit`). GNOME 48 and earlier: `--nested --wayland`. Then `gnome-extensions enable Vitals@CoreCoding.com` inside that session.
+- Wayland: `dbus-run-session gnome-shell --devkit --wayland` (GNOME 49+; needs `mutter-devkit`). GNOME 48 and earlier: `--nested --wayland`. Then `gnome-extensions enable Better_Vitals@spail` inside that session.
 - X11: Alt+F2 → `restart`, then enable. Wayland sessions cannot restart in-place; log out.
 - Logs: `journalctl -f -o cat /usr/bin/gnome-shell`. Use `console.debug` / `warn` / `error`; keep volume low (journal is system-wide). `SHELL_DEBUG=backtrace-warnings` adds JS stacks. Looking Glass: Alt+F2 → `lg`.
 
@@ -55,7 +55,7 @@ Local clone: compile schemas after schema edits (`glib-compile-schemas --strict 
 ## Code in this repo
 
 - Do not poll or format on the main thread; keep `Gio.File.load_contents_async` / subprocess patterns.
-- Gettext: `_()` from the Extension/prefs import, domain `vitals`.
+- Gettext: `_()` from the Extension/prefs import, domain `bettervitals`.
 - GObject subclasses: `GObject.registerClass` + unique `GTypeName`.
 - Icons: `St.Icon` / `Gtk.Image`, not emoji.
 - Line length: stay under ~200 characters (EGO review UI).

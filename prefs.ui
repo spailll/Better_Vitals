@@ -12,7 +12,7 @@
     <property name="sidebar-width-fraction">0.28</property>
     <property name="sidebar">
       <object class="AdwNavigationPage" id="prefs-sidebar-page">
-        <property name="title" translatable="yes">Vitals</property>
+        <property name="title" translatable="yes">Better_Vitals</property>
         <property name="child">
           <object class="AdwToolbarView">
             <child type="top">
@@ -543,7 +543,7 @@
     <child>
       <object class="AdwPreferencesGroup">
         <property name="title" translatable="yes">About</property>
-        <property name="description" translatable="yes">Feature requests or bugs? Please visit &lt;a href=&quot;https://github.com/corecoding/Vitals/issues&quot;&gt;GitHub&lt;/a&gt;. No warranty, expressed or implied. &lt;a href=&quot;https://corecoding.com/donate.php&quot;&gt;Donate&lt;/a&gt; if you found this useful.</property>
+        <property name="description" translatable="yes">Feature requests or bugs? Please visit &lt;a href=&quot;https://github.com/spailll/Better_Vitals/issues&quot;&gt;GitHub&lt;/a&gt;. No warranty, expressed or implied. &lt;a href=&quot;https://corecoding.com/donate.php&quot;&gt;Donate&lt;/a&gt; if you found this useful.</property>
         <property name="margin-start">10</property>
         <property name="margin-end">10</property>
       </object>
